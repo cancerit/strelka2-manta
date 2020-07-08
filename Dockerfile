@@ -23,7 +23,6 @@ RUN locale-gen en_US.UTF-8
 RUN update-locale LANG=en_US.UTF-8
 
 ENV OPT /opt/wtsi-cgp
-ENV PATH $OPT/bin:$PATH
 ENV PERL5LIB $OPT/lib/perl5
 ENV LD_LIBRARY_PATH $OPT/lib
 ENV LC_ALL en_US.UTF-8
@@ -37,8 +36,6 @@ RUN tar --strip-components 1 -C manta -jxf manta.tar.bz2
 WORKDIR /tmp/manta/build
 RUN ../configure --jobs=4 --prefix=$OPT/manta
 RUN make -j4 install
-# remove demo data to reduce image size
-#RUN rm -fr $OPT/manta/share/demo 
 
 # download and install strelka2
 WORKDIR /tmp
@@ -48,8 +45,6 @@ RUN tar --strip-components 1 -C strelka -jxf strelka.tar.bz2
 WORKDIR /tmp/strelka/build
 RUN ../configure --jobs=4 --prefix=$OPT/strelka
 RUN make -j4 install
-# remove demo data to reduce image size
-#RUN rm -fr $OPT/strelka/share/demo/
 
 FROM ubuntu:16.04
 
@@ -74,7 +69,8 @@ RUN locale-gen en_US.UTF-8
 RUN update-locale LANG=en_US.UTF-8
 
 ENV OPT /opt/wtsi-cgp
-ENV PATH $OPT/bin:$PATH
+ENV PATH $OPT/manta/bin:$PATH
+ENV PATH $OPT/strelka/bin:$PATH
 ENV PERL5LIB $OPT/lib/perl5
 ENV LD_LIBRARY_PATH $OPT/lib
 ENV LC_ALL en_US.UTF-8
