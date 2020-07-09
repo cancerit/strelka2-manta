@@ -1,0 +1,21 @@
+notifications:
+  slack: wtsi-cgpit:ptUMR1tkNyZJYd9TpGoss8WR
+  email: false
+
+sudo: false
+
+services:
+  - docker
+
+script:
+ - set -e
+ - echo 'Build and check docker image'
+ - docker build -t strelka2-manta .
+ - docker images | grep -c strelka2-manta
+ - echo 'Verify program(s) from this repo'
+ - docker run -t --rm strelka2-manta configManta.py --version
+ - docker run -t --rm strelka2-manta configureStrelkaSomaticWorkflow.py --version
+ - docker run -t --rm strelka2-manta configureStrelkaGermlineWorkflow.py --version
+ - docker run -t --rm strelka2-manta runMantaWorkflowDemo.py
+ - docker run -t --rm strelka2-manta runStrelkaSomaticWorkflowDemo.bash
+
