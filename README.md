@@ -6,3 +6,9 @@ Image deploys Manta v1.6.0 & Strelka2 v2.9.10
 Information for Manta can be found [ here ](https://github.com/Illumina/manta)
 
 Information for Strelka2 can be found [ here ](https://github.com/Illumina/strelka)
+
+Typical execution of the container with singularity in the cluster is carried out:
+
+module load singularity/3.6.4
+singularity pull docker://quay.io/wtsicgp/strelka2-manta
+singularity exec --cleanenv --bind /lustre:/lustre:ro --bind /nfs:/nfs:ro  strelka2-manta_latest.sif runMantaWorkflowDemo.py
