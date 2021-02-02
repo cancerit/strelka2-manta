@@ -7,10 +7,48 @@ Information for Manta can be found [ here ](https://github.com/Illumina/manta)
 
 Information for Strelka2 can be found [ here ](https://github.com/Illumina/strelka)
 
-Typical execution of the container with singularity in the cluster is carried out:
+Downloading image from quay.io
 
-`module load singularity/3.6.4`
+```
+#download the image (sif file)
+module load singularity/3.6.4
+singularity pull docker://quay.io/wtsicgp/strelka2-manta
+```
+Running the demo
+```
+singularity exec --cleanenv --bind /lustre:/lustre:ro --bind /nfs:/nfs:ro  strelka2-manta_latest.sif \
+  runMantaWorkflowDemo.py
+```
+Running a typical somatic variant workflow
+```
+CPUS=8
 
-`singularity pull docker://quay.io/wtsicgp/strelka2-manta`
+GENOME=/lustre/scratch119/casm/team78pipelines/canpipe/live/ref/human/GRCH37d5/genome.fa
+MANTA_ANALYSIS_PATH=./mantaAnalysis
+STRELKA_ANALYSIS_PATH=./strelkaAnalysis
+TUMOR=PD22a.bam
+NORMAL=PD22b.bam
 
-`singularity exec --cleanenv --bind /lustre:/lustre:ro --bind /nfs:/nfs:ro  strelka2-manta_latest.sif runMantaWorkflowDemo.py`
+#run Manta
+singularity exec --cleanenv --bind /lustre:/lustre:ro --bind /nfs:/nfs:ro strelka2-manta_latest.sif \
+  configManta.py \
+  --normalBam $NORMAL \
+  --tumorBam $TUMOR \
+  --referenceFasta $GENOME \
+  --runDir ${MANTA_ANALYSIS_PATH}
+
+singularity exec --cleanenv --bind /lustre:/lustre:ro --bind /nfs:/nfs:ro strelka2-manta_latest.sif \
+  ${MANTA_ANALYSIS_PATH}/runWorkflow.py -j $CPUS
+
+#run Strelka
+singularity exec --cleanenv --bind /lustre:/lustre:ro --bind /nfs:/nfs:ro strelka2-manta_latest.sif \
+  configureStrelkaSomaticWorkflow.py \
+  --normalBam $NORMAL \
+  --tumorBam $TUMOR \
+  --referenceFasta $GENOME \
+  --indelCandidates ${MANTA_ANALYSIS_PATH}/results/variants/candidateSmallIndels.vcf.gz \
+  --runDir ${STRELKA_ANALYSIS_PATH}
+
+singularity exec --cleanenv --bind /lustre:/lustre:ro --bind /nfs:/nfs:ro strelka2-manta_latest.sif \
+  ${STRELKA_ANALYSIS_PATH}/runWorkflow.py -m local -j $CPUS
+```
